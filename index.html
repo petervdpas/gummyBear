@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
+	<meta charset="utf-8">
+	<title>Saar</title>
+	<meta name="description" content="Saar">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/style.css">
+
+	<script src="js/jquery.js" type="text/javascript"></script>
+	<script src="js/sammy/sammy-0.7.6.min.js" type="text/javascript"></script>
+	<script src="js/sammy/plugins/sammy.template-0.7.6.min.js" type="text/javascript"></script>
+	<script src="js/gummybear.js" type="text/javascript"></script>
+	
+</head>
+<body>
+
+<div id="main">
+</div>
+
+<div id="saar">
+	<span id="saar-face"
+		class="icon-saar"></span>
+	<div id="saar-name">
+		<b>(saar)<span id="triggy" class="pulser">&deg;</span></b>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+var app = $.sammy(function() {
+	
+	this.element_selector = '#main';
+	
+	this.use('Template');
+		  
+	this.bind('window_resize', function() {
+		$( window ).resize(function() {
+			redrawSaar(true);
+		});
+	});
+		
+	this.get('#/', function(context) {
+		
+		context.app.swap('');
+		
+		$( window ).resize(function() {
+			redrawSaar(false);
+			
+			redrawMenu(portfolio);
+			redrawMenu(workshops);
+			redrawMenu(contact);
+		});	
+	
+		context.partial('templates/menu.html').then(function() {
+			redrawSaar(false);
+			
+			window.portfolio = new gummyBear( "#portfolio", "portfolio", .3, .64);
+			window.workshops = new gummyBear( "#workshops", "workshops", .84, .55);
+			window.contact = new gummyBear( "#contact", "contact", .12, .44);
+			
+			redrawMenu(portfolio);
+			redrawMenu(workshops);
+			redrawMenu(contact);
+			
+			$("a").on("click", function(e) {
+				e.preventDefault();
+			});
+			
+			$("a").on("dblclick", function(e) {
+				window.location.href = $(this).attr('href');
+			});
+			
+		});
+	});
+	
+	this.get('#/portfolio', function(context) {
+		
+		context.app.swap('');
+		
+		redrawSaar(true);
+		this.trigger('window_resize');
+		
+		context.partial('templates/portfolio.html').then(function() {
+			
+			redrawSaar(true);
+			
+			var blueBear = new gummyBear( "#workshops", "workshops", 0, 0);
+			blueBear.reWindow();
+			blueBear.blueBear("#saar", "#workshopTitle", 
+				".workshopItem", '#workshopSelect', true,
+				'<span class="icon-arrow-left" style="font-size: 48px;"></span>', 
+				'<span class="icon-arrow-right" style="font-size: 48px;"></span>',
+				function() {
+				
+					//var dialog = new gummyBear( "#overlay", "overlay", 0, 0);
+			
+					$("#dialog").on("click", function() {
+						new gummyBear( "#overlay", "overlay", 0, 0).overlay();
+					});
+				});
+		});
+	});
+	
+	this.get('#/workshops', function(context) {
+		
+		context.app.swap('');
+		
+		redrawSaar(true);
+		this.trigger('window_resize');
+		
+		context.partial('templates/workshops.html').then(function() {
+			redrawSaar(true);
+		});
+	});
+	
+	this.get('#/contact', function(context) {
+		
+		context.app.swap('');
+
+		redrawSaar(true);
+		this.trigger('window_resize');
+		
+		context.partial('templates/contact.html').then(function() {
+			redrawSaar(true);
+		});
+	});
+});
+
+$(function() {
+		
+	window.pulse_image = null;
+	window.pulse_continue_loop = false;
+		  
+	var cc = 0;
+	var colors = [
+		"#000", "#222", "#444", "#666", "#888", "#aaa", "#888", "#666", "#444", "#222", "#000"
+	];
+	
+	setInterval(function(){
+		$( "#triggy" ).
+			fadeIn(2200, function() {
+				if ( cc >= colors.length ) {
+					cc = 0;
+				} else {
+					cc++;
+				}
+			}).
+			fadeOut(2200, function(){
+				$(this).css('color', colors[cc] );
+			});
+	}, 0);
+	
+	$("#triggy").click(function() {
+		window.location.href = "#/";
+	});
+	
+	$("#saar-face").click(function() {
+		window.location.href = "#/";
+	});
+	
+	$(".pulser").mouseover(
+		function() {
+			window.pulse_continue_loop = true;
+			window.pulse_image = $(this);
+			PulseAnimation();
+		}).
+		mouseout(function() {
+			window.pulse_continue_loop = false;
+			window.pulse_image.stop();
+			window.pulse_image.css('opacity',1);
+		});
+		
+	app.run('#/');
+	
+});
+
+
+function PulseAnimation()
+{
+	var minOpacity = .33;
+	var fadeOutDuration = 650;
+	var fadeInDuration = 650;
+	
+	window.pulse_image.animate({
+		opacity: minOpacity
+	}, fadeOutDuration, function() {
+		window.pulse_image.animate({
+			opacity: 1
+		}, fadeInDuration, function() {
+			if(window.pulse_continue_loop) {
+				PulseAnimation();
+			}
+		})
+	});
+}
+
+function redrawSaar(rescale) {
+
+	var saar = new gummyBear( "#saar", "saar", .01, .98);
+	saar.reWindow();
+	saar.rePosition();
+	
+	var main = new gummyBear( "#main", "main", .01, .01 );
+	main.reWindow();
+	if (rescale) {
+		main.reScale( 18, saar.object.height() + 40);
+	} else {
+		main.reScale( 18, 18);
+	}
+	//main.rePosition();
+}
+
+function redrawMenu(gummybear) 
+{
+	gummybear.makeDraggable( "#saar" );
+	gummybear.reWindow();
+	gummybear.rePosition();	
+}
+
+</script>
+		
+</body>
+</html>
+
