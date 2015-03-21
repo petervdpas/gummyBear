@@ -29,40 +29,109 @@
 
 <script type="text/javascript">
 
-var app = $.sammy(function() {
-	
-	this.element_selector = '#main';
+var app = $.sammy('#main', function() {
 	
 	this.use('Template');
+	
+    this.around(function (callback) {
+		
+		var context = this;
+		
+		context.createMenu = function() {
+			
+			context.portfolio = new gummyBear( "#portfolio", "portfolio", .43, .44);
+			context.portfolio.object.on("gummydrop", context.gummydrop);
+		
+			context.workshops = new gummyBear( "#workshops", "workshops", .84, .35);
+			context.workshops.object.on("gummydrop", context.gummydrop);
+		
+			context.contact = new gummyBear( "#contact", "contact", .12, .14);
+			context.contact.object.on("gummydrop", context.gummydrop);
+		}
+		
+		context.redrawMenu = function (object) 
+		{	
+			object.makeDraggable( "#saar-name", "gummydrop");
+			object.reWindow();
+			object.rePosition();	
+		}
+		
+		context.redrawSaar = function(rescale) 
+		{
+			var saar = new gummyBear( "#saar", "saar", .01, .98);
+			saar.reWindow();
+			saar.rePosition();
+	
+			var main = new gummyBear( "#main", "main", .01, .01 );
+			main.reWindow();
+			if (rescale) {
+				main.reScale( 18, saar.object.height() + 40);
+			} else {
+				main.reScale( 18, 18);
+			}
+			//main.rePosition();
+		}
+		
+		context.gummydrop = function() {
+			var obj = $(this);
+			var url = obj.find('a').attr('href');
+			window.location.href = url;
+			window.location.reload();	
+		}
+		
+		context.createMenu();
+		
+		callback();
+	});
+			
+	this.bind('run', function() {
+		
+		var context = this;
+		
+		context.saar = new gummyBear( "#saar", "saar", .01, .98);
+		context.main = new gummyBear( "#main", "main", .01, .01 );
+	});
 		  
 	this.bind('window_resize', function() {
+		
+		var context = this;
+		
 		$( window ).resize(function() {
-			redrawSaar(true);
+			context.redrawSaar(true);
+			context.trigger('redraw_menu');
 		});
 	});
+	
+	this.bind('redraw_menu', function() {
 		
+		var context = this;
+		
+		context.redrawMenu(context.portfolio);
+		context.redrawMenu(context.workshops);
+		context.redrawMenu(context.contact);
+	});
+	
 	this.get('#/', function(context) {
 		
 		context.app.swap('');
 		
 		$( window ).resize(function() {
-			redrawSaar(false);
-			
-			redrawMenu(portfolio);
-			redrawMenu(workshops);
-			redrawMenu(contact);
+			context.redrawSaar(false);
+			context.trigger('redraw_menu');
 		});	
-	
+
+		var gummydrop = function() {
+			var obj = $(this);
+			var url = obj.find('a').attr('href');
+			window.location.href = url;
+			window.location.reload();	
+		}
+		
 		context.partial('templates/menu.html').then(function() {
-			redrawSaar(false);
 			
-			window.portfolio = new gummyBear( "#portfolio", "portfolio", .3, .64);
-			window.workshops = new gummyBear( "#workshops", "workshops", .84, .55);
-			window.contact = new gummyBear( "#contact", "contact", .12, .44);
-			
-			redrawMenu(portfolio);
-			redrawMenu(workshops);
-			redrawMenu(contact);
+			context.redrawSaar(false);
+			context.createMenu();
+			context.trigger('redraw_menu');
 			
 			$("a").on("click", function(e) {
 				e.preventDefault();
@@ -70,6 +139,7 @@ var app = $.sammy(function() {
 			
 			$("a").on("dblclick", function(e) {
 				window.location.href = $(this).attr('href');
+				window.location.reload();
 			});
 			
 		});
@@ -79,12 +149,12 @@ var app = $.sammy(function() {
 		
 		context.app.swap('');
 		
-		redrawSaar(true);
-		this.trigger('window_resize');
+		context.redrawSaar(true);
+		context.trigger('window_resize');
 		
 		context.partial('templates/portfolio.html').then(function() {
 			
-			redrawSaar(true);
+			context.redrawSaar(true);
 			
 			var blueBear = new gummyBear( "#workshops", "workshops", 0, 0);
 			blueBear.reWindow();
@@ -107,8 +177,8 @@ var app = $.sammy(function() {
 		
 		context.app.swap('');
 		
-		redrawSaar(true);
-		this.trigger('window_resize');
+		context.redrawSaar(true);
+		context.trigger('window_resize');
 		
 		context.partial('templates/workshops.html').then(function() {
 			redrawSaar(true);
@@ -119,8 +189,8 @@ var app = $.sammy(function() {
 		
 		context.app.swap('');
 
-		redrawSaar(true);
-		this.trigger('window_resize');
+		context.redrawSaar(true);
+		context.trigger('window_resize');
 		
 		context.partial('templates/contact.html').then(function() {
 			redrawSaar(true);
@@ -135,7 +205,10 @@ $(function() {
 		  
 	var cc = 0;
 	var colors = [
-		"#000", "#222", "#444", "#666", "#888", "#aaa", "#888", "#666", "#444", "#222", "#000"
+		"#000", "#222", "#444", 
+		"#666", "#888", "#aaa", 
+		"#888", "#666", "#444", 
+		"#222", "#000"
 	];
 	
 	setInterval(function(){
@@ -176,7 +249,6 @@ $(function() {
 	
 });
 
-
 function PulseAnimation()
 {
 	var minOpacity = .33;
@@ -196,28 +268,6 @@ function PulseAnimation()
 	});
 }
 
-function redrawSaar(rescale) {
-
-	var saar = new gummyBear( "#saar", "saar", .01, .98);
-	saar.reWindow();
-	saar.rePosition();
-	
-	var main = new gummyBear( "#main", "main", .01, .01 );
-	main.reWindow();
-	if (rescale) {
-		main.reScale( 18, saar.object.height() + 40);
-	} else {
-		main.reScale( 18, 18);
-	}
-	//main.rePosition();
-}
-
-function redrawMenu(gummybear) 
-{
-	gummybear.makeDraggable( "#saar" );
-	gummybear.reWindow();
-	gummybear.rePosition();	
-}
 
 </script>
 		

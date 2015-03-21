@@ -24,6 +24,8 @@ function gummyBear( element, name, factorX, factorY) {
 	
 	this.dragObject = false; 
 	this.dropObject = null;
+	
+	this.reWindow();
 }
 
 gummyBear.prototype.reversion = function (version) 
@@ -147,16 +149,9 @@ gummyBear.prototype.blueBear = function (element, blueGlue,
 		callback();
 	}
 }
-
-gummyBear.prototype.position = function () 
-{	
-	var _this = this;
-	
-	return _this.object.position();
-}
-
+   
 //Insert a callback in this...
-gummyBear.prototype.makeDraggable = function (dropzone) {
+gummyBear.prototype.makeDraggable = function (dropzone, dropaction) {
 	
 	var _this = this;
 	
@@ -177,11 +172,12 @@ gummyBear.prototype.makeDraggable = function (dropzone) {
 	
         if (_this.dragObject) {
 		
-			var nMulti = (.5 - Math.abs((ev.pageX - _this.screenW) / _this.screenW)) * 2;
-		
-			_this.factorX = (ev.pageX + (objW * nMulti)) / _this.screenW;
-			_this.factorY = (ev.pageY + objH) / _this.screenH; 
-		
+			var xMulti = (.5 - Math.abs((ev.pageX - _this.screenW) / _this.screenW)) * 2;
+			var yMulti = (.5 - Math.abs((ev.pageY - _this.screenH) / _this.screenH)) * 2;
+
+			_this.factorX = (ev.pageX + (objW * xMulti)) / _this.screenW;
+			_this.factorY = (ev.pageY + (objH * yMulti)) / _this.screenH; 
+			
 			_this.rePosition();
         }
     });
@@ -193,6 +189,10 @@ gummyBear.prototype.makeDraggable = function (dropzone) {
 			if ( document.gbObjectDragged === _this.name ) {
 				_this.dragObject = false;
 				document.gbObjectDragged = false;
+				
+				if ( $(dropzone).length > 0 ) {
+					_this.object.trigger(dropaction);
+				}
 			}
 		});
 	
@@ -203,6 +203,10 @@ gummyBear.prototype.makeDraggable = function (dropzone) {
 			if ( document.gbObjectDragged === _this.name ) {
 				_this.dragObject = false;
 				document.gbObjectDragged = false;
+				
+				if ( $(dropzone).length > 0 ) {
+					_this.object.trigger(dropaction);
+				}
 			}
 		});
 	}
@@ -239,11 +243,18 @@ gummyBear.prototype.reWindow = function ()
 	}
 }
 
+gummyBear.prototype.position = function () 
+{	
+	var _this = this;
+	
+	return _this.object.position();
+}
+
 gummyBear.prototype.rePosition = function ()
 {	
 	var _this = this;
 	
-	_this.object.css('top', (_this.screenH * _this.factorY) - _this.object.height());
+	_this.object.css('top', (_this.screenH - _this.object.height()) * _this.factorY);
 	_this.object.css('left', (_this.screenW - _this.object.width()) * _this.factorX);
 }
 

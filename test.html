@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
+	<meta charset="utf-8">
+	<title>Testpage</title>
+	<meta name="description" content="Saar">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/test.css">
+
+	<script src="js/jquery.js" type="text/javascript"></script>
+	<script src="js/gummybear.js" type="text/javascript"></script>
+	
+</head>
+<body>
+
+<div id="test-main">
+	Even een test!
+</div>
+
+
+<script type="text/javascript">
+
+$(function() {
+
+	var test = new gummyBear( "#test-main", "test-main", .01, .01);
+	test.makeDraggable();
+	
+	test.rePosition();
+	
+	$( window ).resize(function() {
+		test.reWindow();
+		test.rePosition();
+	});
+});
+
+</script>
+		
+</body>
+</html>
