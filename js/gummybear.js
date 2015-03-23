@@ -22,9 +22,13 @@ function gummyBear( element, name, factorX, factorY) {
 	this.dialogAlert = null;
 	this.crapcutter();
 	
+	this.cursor = "pointer";
+	
+	this.draggable = false; 
 	this.dragObject = false; 
 	this.dropObject = null;
 	
+	this.reCursor();
 	this.reWindow();
 }
 
@@ -149,11 +153,43 @@ gummyBear.prototype.blueBear = function (element, blueGlue,
 		callback();
 	}
 }
-   
+
+gummyBear.prototype.reCursor = function (dropzone, dropaction) {
+	
+	var _this = this;
+	
+	var closeHand = "url(http://www.google.com/intl/en_ALL/mapfiles/closedhand.cur)";
+	var openHand = "url(http://www.google.com/intl/en_ALL/mapfiles/openhand.cur)";
+	
+	var curBrowser = _this.browserInfo().name;
+	var cursCoords = (_this.browserInfo().name == "Explorer") ? "" : " 4 4"; 
+	
+	if ( _this.draggable ) {
+		
+		if (document.gbObjectDragged) {
+		    _this.cursor = (curBrowser == "Firefox") ? 
+				"-moz-grabbing" : closeHand + cursCoords + ", move";
+		    // Opera doesn't support url cursors and doesn't fall back well...
+		    if (curBrowser == "Opera") {
+				_this.cursor = "move";
+			}
+		} else {
+		    _this.cursor = (curBrowser == "Firefox") ? 
+				"-moz-grab" : openHand + cursCoords + ", move";
+		}
+	}
+	
+	_this.object.css("cursor", _this.cursor);
+	_this.object.css("user-select", "none");
+}
+
 //Insert a callback in this...
 gummyBear.prototype.makeDraggable = function (dropzone, dropaction) {
 	
 	var _this = this;
+	
+	_this.draggable = true;
+	_this.reCursor();
 	
 	if (typeof document.gbObjectDragged === 'undefined') {
 		document.gbObjectDragged = false;
@@ -171,51 +207,49 @@ gummyBear.prototype.makeDraggable = function (dropzone, dropaction) {
 		ev = ev || window.event; 
 	
         if (_this.dragObject) {
-		
+			
 			var xMulti = (.5 - Math.abs((ev.pageX - _this.screenW) / _this.screenW)) * 2;
 			var yMulti = (.5 - Math.abs((ev.pageY - _this.screenH) / _this.screenH)) * 2;
 
 			_this.factorX = (ev.pageX + (objW * xMulti)) / _this.screenW;
 			_this.factorY = (ev.pageY + (objH * yMulti)) / _this.screenH; 
 			
+			_this.reCursor();
 			_this.rePosition();
         }
     });
 	
+	var mouseUp = function () {
+		if ( document.gbObjectDragged === _this.name ) {
+			_this.dragObject = false;
+			document.gbObjectDragged = false;
+			if ( $(dropzone).length > 0 ) {
+				_this.object.trigger(dropaction);
+			}
+			_this.reCursor();
+		}
+	}
+	
+	var mouseDown = function() {
+		if ( !document.gbObjectDragged ) {
+			_this.dragObject = true;
+			document.gbObjectDragged = _this.name;
+			_this.reCursor();
+		}
+	}
+	
 	if (_this.dropObject !== null) {
-	
 		_this.dropObject.on("mouseup", function (ev) {
-		
-			if ( document.gbObjectDragged === _this.name ) {
-				_this.dragObject = false;
-				document.gbObjectDragged = false;
-				
-				if ( $(dropzone).length > 0 ) {
-					_this.object.trigger(dropaction);
-				}
-			}
+			mouseUp();
 		});
-	
 	} else {
-	
 		_this.object.on("mouseup", function (ev) {
-
-			if ( document.gbObjectDragged === _this.name ) {
-				_this.dragObject = false;
-				document.gbObjectDragged = false;
-				
-				if ( $(dropzone).length > 0 ) {
-					_this.object.trigger(dropaction);
-				}
-			}
+			mouseUp();
 		});
 	}
 	
 	_this.object.on("mousedown", function (ev) {
-		if ( !document.gbObjectDragged ) {
-			_this.dragObject = true;
-			document.gbObjectDragged = _this.name;
-		}
+		mouseDown();
 	});
 }
 
@@ -225,6 +259,58 @@ gummyBear.prototype.reScale = function (xRight, yBottom)
 
 	_this.object.css('width', (_this.screenW - xRight) + 'px');
 	_this.object.css('height', (_this.screenH - yBottom) + 'px');
+}
+
+gummyBear.prototype.angle = function (xI, xO, yI, yO) {
+	var deg = Math.atan2(yI - yO, xI - xO) * (180/Math.PI);
+	deg += 90;
+	if (deg < 0) {
+		deg += 360;
+	}
+	return deg;
+};
+
+gummyBear.prototype.trajectory = function (nFactorX, nFactorY, interval) 
+{	
+	var _this = this;
+	
+	nFactorX = _this.round(nFactorX, 2) * 100;
+	nFactorY = _this.round(nFactorY, 2) * 100;
+	
+	var oFactorX = _this.round(_this.factorX, 2) * 100;
+	var oFactorY = _this.round(_this.factorY, 2) * 100;
+	
+	var myTimer = setInterval(function() {
+		
+		if ( oFactorX > nFactorX ) {
+			oFactorX -= 1;
+		} 
+		if ( oFactorX < nFactorX ) {
+			oFactorX += 1;
+		}
+
+		if ( oFactorY > nFactorY ) {
+			oFactorY -= 1;
+		}
+		if ( oFactorY < nFactorY ) {
+			oFactorY += 1;
+		}
+		
+		if ( (oFactorX === nFactorX) && 
+				(oFactorY === nFactorY) ) {
+			clearInterval(myTimer);	
+		}
+		
+		_this.factorX = oFactorX / 100;
+		_this.factorY = oFactorY / 100;
+
+		_this.rePosition();
+	
+	}, interval);
+		
+		//break;
+	
+	return;
 }
 
 gummyBear.prototype.reWindow = function () 
@@ -274,6 +360,40 @@ gummyBear.prototype.overlay = function ()
 gummyBear.prototype.round = function(value, places) {
     var multiplier = Math.pow(10, places);
     return (Math.round(value * multiplier) / multiplier);
+}
+
+gummyBear.prototype.browserInfo = function () {
+	
+    var ua = navigator.userAgent, tem, 
+		M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+		 
+    if (/trident/i.test(M[1])) {
+        tem = /\brv[ :]+(\d+)/g.exec(ua) || []; 
+        return {
+			name: 'IE ',
+			version: (tem[1]||'')
+		};
+	}
+	   
+    if ( M[1] === 'Chrome' ) {
+        tem = ua.match(/\bOPR\/(\d+)/);
+        if ( tem != null ) {
+			return {
+				name: 'Opera', version: tem[1]
+			};
+		}
+	}
+	   
+    M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
+	
+    if ( (tem = ua.match(/version\/(\d+)/i)) != null) {
+		M.splice(1, 1, tem[1]);
+	}
+    
+	return {
+      name: M[0],
+      version: M[1]
+    };
 }
 
 /* and now, the end has come... curtains closed !*/

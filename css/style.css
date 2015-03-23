@@ -93,7 +93,6 @@ body {
 
 #triggy {
 	color: #000;
-	cursor: pointer;
 }
 
 ul {
@@ -112,7 +111,6 @@ ul {
 	top: 0;
 	left: 0;
 	/* background-color: green; /**/
-	cursor: pointer;
 }
 a.sodClick {
 	text-decoration: none;

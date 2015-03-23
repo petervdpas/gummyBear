@@ -23,10 +23,12 @@
 
 $(function() {
 
-	var test = new gummyBear( "#test-main", "test-main", .01, .01);
+	var test = new gummyBear( "#test-main", "test-main", .5, 1);
 	test.makeDraggable();
 	
 	test.rePosition();
+	
+	test.trajectory(.5, .5, 50);
 	
 	$( window ).resize(function() {
 		test.reWindow();

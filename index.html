@@ -58,11 +58,11 @@ var app = $.sammy('#main', function() {
 		
 		context.redrawSaar = function(rescale) 
 		{
-			var saar = new gummyBear( "#saar", "saar", .01, .98);
+			var saar = new gummyBear( "#saar", "saar", .01, .99);
 			saar.reWindow();
 			saar.rePosition();
-	
-			var main = new gummyBear( "#main", "main", .01, .01 );
+
+			var main = new gummyBear( "#main", "main", 0, 0);
 			main.reWindow();
 			if (rescale) {
 				main.reScale( 18, saar.object.height() + 40);
@@ -181,7 +181,7 @@ var app = $.sammy('#main', function() {
 		context.trigger('window_resize');
 		
 		context.partial('templates/workshops.html').then(function() {
-			redrawSaar(true);
+			context.redrawSaar(true);
 		});
 	});
 	
@@ -193,7 +193,7 @@ var app = $.sammy('#main', function() {
 		context.trigger('window_resize');
 		
 		context.partial('templates/contact.html').then(function() {
-			redrawSaar(true);
+			context.redrawSaar(true);
 		});
 	});
 });
