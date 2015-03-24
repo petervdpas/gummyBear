@@ -280,35 +280,45 @@ gummyBear.prototype.trajectory = function (nFactorX, nFactorY, interval)
 	var oFactorX = _this.round(_this.factorX, 2) * 100;
 	var oFactorY = _this.round(_this.factorY, 2) * 100;
 	
+	interval = ( ( 
+		Math.abs((oFactorX - nFactorX)/2) + 
+		Math.abs((oFactorX - nFactorX)/2)
+	) * (interval/100) );
+	
+	var tFactorX = _this.round((nFactorX - oFactorX) / 100, 2);
+	var tFactorY = _this.round((nFactorY - oFactorY) / 100, 2);
+	
 	var myTimer = setInterval(function() {
 		
-		if ( oFactorX > nFactorX ) {
-			oFactorX -= 1;
+		if ( (oFactorX > nFactorX) || (oFactorX < nFactorX) ) {
+			if ( tFactorX < 0 ) {
+				//oFactorX += tFactorX;
+			} else {
+				//oFactorX -= tFactorX;
+			}
+			oFactorX += tFactorX;
 		} 
-		if ( oFactorX < nFactorX ) {
-			oFactorX += 1;
-		}
 
-		if ( oFactorY > nFactorY ) {
-			oFactorY -= 1;
-		}
-		if ( oFactorY < nFactorY ) {
-			oFactorY += 1;
-		}
+		if ( (oFactorY > nFactorY) || (oFactorY < nFactorY) ) {
+			if ( oFactorY < 0 ) {
+				//oFactorY += tFactorY;
+			} else {
+				//oFactorY -= tFactorY;
+			}
+			oFactorY += tFactorY;
+		} 
 		
-		if ( (oFactorX === nFactorX) && 
-				(oFactorY === nFactorY) ) {
+		if ( ( _this.round(oFactorX, 2) === _this.round(nFactorX, 2) ) && 
+				( _this.round(oFactorY, 2) === _this.round(nFactorY, 2) ) ) {	
 			clearInterval(myTimer);	
 		}
 		
 		_this.factorX = oFactorX / 100;
 		_this.factorY = oFactorY / 100;
-
+		
 		_this.rePosition();
 	
 	}, interval);
-		
-		//break;
 	
 	return;
 }

@@ -15,7 +15,7 @@
 <body>
 
 <div id="test-main">
-	Even een test!
+	<p>Grab this, move it and double-click it!</p>
 </div>
 
 
@@ -23,12 +23,18 @@
 
 $(function() {
 
-	var test = new gummyBear( "#test-main", "test-main", .5, 1);
+	var test = new gummyBear( "#test-main", "test-main", 1, .5);
 	test.makeDraggable();
 	
 	test.rePosition();
 	
-	test.trajectory(.5, .5, 50);
+	var i = 50;
+	
+	test.trajectory(.5, .5, i);
+	
+	test.object.on("dblclick", function() {
+		test.trajectory(.5, .5, i);
+	});
 	
 	$( window ).resize(function() {
 		test.reWindow();
