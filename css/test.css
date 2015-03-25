@@ -9,6 +9,19 @@ body {
     padding:0;
 }
 
+#center-point {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100px;
+	height: 100px;
+	
+	font-size: 24px;
+	text-align: center;
+	padding: 4px;
+	background: orange;
+}
+
 #test-main {
 	position: absolute;
 	top: 0;
@@ -19,4 +32,6 @@ body {
 	height: 100px;
 	font-size: 10px;
 	padding: 4px;
+	
+	opacity: .5;
 }

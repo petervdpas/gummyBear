@@ -270,59 +270,51 @@ gummyBear.prototype.angle = function (xI, xO, yI, yO) {
 	return deg;
 };
 
-gummyBear.prototype.trajectory = function (nFactorX, nFactorY, interval) 
+gummyBear.prototype.trajectory = function (nX, nY, d, callback) 
 {	
 	var _this = this;
 	
-	nFactorX = _this.round(nFactorX, 2) * 100;
-	nFactorY = _this.round(nFactorY, 2) * 100;
+	var interval = d / 100;
+	var t = 0;
 	
-	var oFactorX = _this.round(_this.factorX, 2) * 100;
-	var oFactorY = _this.round(_this.factorY, 2) * 100;
+	nX = nX * 100;
+	nY = nY * 100;
 	
-	interval = ( ( 
-		Math.abs((oFactorX - nFactorX)/2) + 
-		Math.abs((oFactorX - nFactorX)/2)
-	) * (interval/100) );
+	var x = _this.factorX * 100;
+	var y = _this.factorY * 100;
 	
-	var tFactorX = _this.round((nFactorX - oFactorX) / 100, 2);
-	var tFactorY = _this.round((nFactorY - oFactorY) / 100, 2);
+	if ( !jQuery.isFunction(callback) ) {
+		callback = function (t, b, c, d) {
+			return c*t/d + b;
+		}
+	}
 	
 	var myTimer = setInterval(function() {
 		
-		if ( (oFactorX > nFactorX) || (oFactorX < nFactorX) ) {
-			if ( tFactorX < 0 ) {
-				//oFactorX += tFactorX;
-			} else {
-				//oFactorX -= tFactorX;
-			}
-			oFactorX += tFactorX;
+		if ( (x > nX) || (x < nX) ) {
+			x = callback(t, x, (nX - x) / Math.PI, d);
 		} 
 
-		if ( (oFactorY > nFactorY) || (oFactorY < nFactorY) ) {
-			if ( oFactorY < 0 ) {
-				//oFactorY += tFactorY;
-			} else {
-				//oFactorY -= tFactorY;
-			}
-			oFactorY += tFactorY;
-		} 
+		if ( (y > nY) || (y < nY) ) {
+			y = callback(t, y, (nY - y) / Math.PI, d);
+		}
+
+		t += interval;
 		
-		if ( ( _this.round(oFactorX, 2) === _this.round(nFactorX, 2) ) && 
-				( _this.round(oFactorY, 2) === _this.round(nFactorY, 2) ) ) {	
+		if ( t === d ) {	
 			clearInterval(myTimer);	
 		}
-		
-		_this.factorX = oFactorX / 100;
-		_this.factorY = oFactorY / 100;
+
+		_this.factorX = x / 100;
+		_this.factorY = y / 100;
 		
 		_this.rePosition();
-	
+		
 	}, interval);
 	
 	return;
 }
-
+	
 gummyBear.prototype.reWindow = function () 
 {	
 	var _this = this;
@@ -367,10 +359,12 @@ gummyBear.prototype.overlay = function ()
 	});
 }
 
+/*
 gummyBear.prototype.round = function(value, places) {
     var multiplier = Math.pow(10, places);
     return (Math.round(value * multiplier) / multiplier);
 }
+*/
 
 gummyBear.prototype.browserInfo = function () {
 	
