@@ -30,6 +30,9 @@ function gummyBear( element, name, factorX, factorY) {
 	
 	this.reCursor();
 	this.reWindow();
+	
+	this.slides = [];
+	this.parallax = null;
 }
 
 gummyBear.prototype.reversion = function (version) 
@@ -270,51 +273,134 @@ gummyBear.prototype.angle = function (xI, xO, yI, yO) {
 	return deg;
 };
 
-gummyBear.prototype.trajectory = function (nX, nY, d, callback) 
+gummyBear.prototype.getTime = function () 
+{
+	return new Date().getTime();
+}
+
+gummyBear.prototype.timer = function (interval, callback) 
+{
+	var myTimer = setInterval(function() {
+	}, 0);
+}
+
+gummyBear.prototype.trajectory = function (nX, nY, interval, duration, callback) 
 {	
 	var _this = this;
 	
-	var interval = d / 100;
 	var t = 0;
-	
-	nX = nX * 100;
-	nY = nY * 100;
-	
-	var x = _this.factorX * 100;
-	var y = _this.factorY * 100;
+	var x = _this.factorX;
+	var y = _this.factorY;
+	var nXmX = nX - x;
+	var nYmY = nY - y;
 	
 	if ( !jQuery.isFunction(callback) ) {
 		callback = function (t, b, c, d) {
-			return c*t/d + b;
+			return c * t/d + b;
 		}
 	}
 	
 	var myTimer = setInterval(function() {
 		
+		$("#log").html(t);
+		
+		x = _this.factorX;
+		y = _this.factorY;
+		
+		nXmX = nX - x;
+		nYmY = nY - y;
+		
+		if ( ( (nXmX === 0) && (nYmY === 0) ) || (t >= duration) ) {	
+			clearInterval(myTimer);	
+		}
+		t += interval;
+		
 		if ( (x > nX) || (x < nX) ) {
-			x = callback(t, x, (nX - x) / Math.PI, d);
+			_this.factorX = callback(t, x, nXmX, duration);
 		} 
 
 		if ( (y > nY) || (y < nY) ) {
-			y = callback(t, y, (nY - y) / Math.PI, d);
+			_this.factorY = callback(t, y, nYmY, duration);
 		}
-
-		t += interval;
 		
-		if ( t === d ) {	
-			clearInterval(myTimer);	
-		}
-
-		_this.factorX = x / 100;
-		_this.factorY = y / 100;
-		
-		_this.rePosition();
+		_this.rePosition();	
 		
 	}, interval);
 	
 	return;
 }
+
+gummyBear.prototype.slidingDivs = function () 
+{
+	var _this = this;
 	
+	var slideH = _this.object.height();
+	var slideW = _this.object.width();
+
+	window.requestAnimationFrame = 
+		window.requestAnimationFrame || 
+		window.mozRequestAnimationFrame || 
+		window.webkitRequestAnimationFrame || 
+		window.msRequestAnimationFrame || 
+		function (f) { 
+			setTimeout(f, 1000/60);
+		}
+		
+	var index = 0;
+	
+	$('.bearSlide', _this.object).each(function() {
+
+		index += 1;
+		
+		var id = "bearSlide" + index;
+		
+		var object = $(this);
+		
+		object.css("top", (_this.screenH - object.height()) * object.data("init-top"));
+		object.css("left", (_this.screenW - object.width()) * object.data("init-left"));
+		
+		var gummybear = new gummyBear( "#" + id, id, 0, 0);
+		
+		gummybear.parallax = function () {
+			
+			var direction = object.data("scroll-direction");
+			var scrollRate = object.data("scroll-rate");
+			var rc = object.data("scroll-rc");
+			
+			var scrollLeft = window.pageXOffset;
+			var scrollTop = window.pageYOffset;
+			
+			var cT = object.position().top;
+			var cL = object.position().left;
+			
+			if ( direction === 'vertical' ) {
+				cT += (scrollLeft * scrollRate);
+				cL += (scrollLeft * scrollRate) * rc;	
+			} else {
+				cT += (-scrollTop * scrollRate);
+				cL += (-scrollTop * scrollRate) * rc;
+			}
+			
+			//console.log(cT + ":" + cL);
+			
+			object.css("top", cT);
+			object.css("left", cL);
+		}
+		
+		_this.slides.push(gummybear);
+
+		$(object).insertAfter(_this.object).attr("id", id);		
+	});
+	
+	_this.object.remove(); 
+	
+	window.addEventListener('scroll', function() { 
+		for (var i=0; i<_this.slides.length; i++) {
+			requestAnimationFrame(_this.slides[i].parallax);
+		}
+	}, false);
+}
+
 gummyBear.prototype.reWindow = function () 
 {	
 	var _this = this;
@@ -342,8 +428,8 @@ gummyBear.prototype.rePosition = function ()
 {	
 	var _this = this;
 	
-	_this.object.css('top', (_this.screenH - _this.object.height()) * _this.factorY);
-	_this.object.css('left', (_this.screenW - _this.object.width()) * _this.factorX);
+	_this.object.css('top', Math.round((_this.screenH - _this.object.height()) * _this.factorY) + 'px');
+	_this.object.css('left', Math.round((_this.screenW - _this.object.width()) * _this.factorX) + 'px');
 }
 
 gummyBear.prototype.overlay = function ()
@@ -359,12 +445,10 @@ gummyBear.prototype.overlay = function ()
 	});
 }
 
-/*
 gummyBear.prototype.round = function(value, places) {
     var multiplier = Math.pow(10, places);
     return (Math.round(value * multiplier) / multiplier);
 }
-*/
 
 gummyBear.prototype.browserInfo = function () {
 	

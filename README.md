@@ -7,6 +7,8 @@ My girlfriend wanted a new website... but it had to be special. Some design she 
 
 Current features:
 
-+ position objects on screen and have them repositioned when changing screensize
++ position objects on screen and have them repositioned when changing screensize.
 + turn a list into multiple objects and create a dropdown select from it to navigate toward it.
 + give objects drag and drop functionallity
++ give objects parallaxing abilities.
+
