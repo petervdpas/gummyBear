@@ -49,8 +49,6 @@ body {
 	position: fixed;
  	top: 0;
  	left: 0;
- 	width: 120px;
- 	height: 120px;
  	z-index: -1;
 }
 
@@ -59,6 +57,7 @@ body {
  top: 500px;
  left: -100px;
  z-index: 1;
+ 
 }
 
 #bearSlide2{
